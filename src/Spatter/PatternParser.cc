@@ -16,7 +16,9 @@ size_t power(size_t base, size_t exp) {
 
 int generate_pattern(std::string type,
     std::vector<std::vector<size_t>> generator,
-    aligned_vector<size_t> &pattern) {
+    aligned_vector<size_t> &pattern,
+    size_t &delta,
+    bool nr_option) {
   if (type.compare("UNIFORM") == 0) {
     if (generator.size() != 2) {
       std::cerr << "Parsing Error: Invalid UNIFORM Pattern "
@@ -30,6 +32,9 @@ int generate_pattern(std::string type,
 
     for (size_t i = 0; i < len; ++i)
       pattern.push_back(i * stride);
+
+    if (nr_option != 0)
+      delta = len * stride;
   } else if (type.compare("MS1") == 0) {
     if (generator.size() != 3) {
       std::cerr << "Parsing Error: Invalid MS1 Pattern "
@@ -128,17 +133,23 @@ int generate_pattern(std::string type,
   return 0;
 }
 
-int pattern_parser(
-    std::stringstream &pattern_string, aligned_vector<size_t> &pattern) {
+int pattern_parser(std::stringstream &pattern_string,
+    aligned_vector<size_t> &pattern,
+    size_t &delta) {
 
   std::string type;
   std::vector<std::vector<size_t>> generator;
+  bool nr_option = false;
 
   if (pattern_string.str().rfind("UNIFORM", 0) == 0) {
+
     std::getline(pattern_string, type, ':');
 
     for (std::string line; std::getline(pattern_string, line, ':');) {
       try {
+        if (line.compare("NR") == 0)
+          nr_option = true;
+
         size_t val = std::stoul(line);
 
         if (line[0] == '-') {
@@ -212,7 +223,7 @@ int pattern_parser(
   }
 
   if (!type.empty())
-    if (generate_pattern(type, generator, pattern) != 0)
+    if (generate_pattern(type, generator, pattern, delta, nr_option) != 0)
       return -1;
 
   if (type.empty()) {

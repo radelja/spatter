@@ -19,10 +19,13 @@ size_t power(size_t base, size_t exp);
 
 int generate_pattern(std::string type,
     std::vector<std::vector<size_t>> generator,
-    aligned_vector<size_t> &pattern);
+    aligned_vector<size_t> &pattern,
+    size_t &delta,
+    bool nr_option);
 
-int pattern_parser(
-    std::stringstream &pattern_string, aligned_vector<size_t> &pattern);
+int pattern_parser(std::stringstream &pattern_string,
+    aligned_vector<size_t> &pattern,
+    size_t &delta);
 
 } // namespace Spatter
 
