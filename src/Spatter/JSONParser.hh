@@ -9,6 +9,7 @@
 #include <cctype>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <string>
 
 #include <nlohmann/json.hpp>
@@ -26,7 +27,11 @@ namespace Spatter {
 
 class JSONParser {
 public:
-  JSONParser(std::string filename, const std::string backend,
+  JSONParser(std::string filename,
+      aligned_vector<double> &sparse,
+      aligned_vector<double> &sparse_gather,
+      aligned_vector<double> &sparse_scatter,
+      aligned_vector<double> &dense, const std::string backend,
       const bool aggregate, const bool atomic, const bool compress,
       const unsigned long verbosity, const std::string name = "",
       const std::string kernel = "gather", const size_t pattern_size = 0,
@@ -47,6 +52,12 @@ private:
 private:
   json data_;
   size_t size_;
+
+  aligned_vector<double> &sparse;
+  aligned_vector<double> &sparse_gather;
+  aligned_vector<double> &sparse_scatter;
+
+  aligned_vector<double> &dense;
 
   std::string backend_;
   const bool aggregate_;

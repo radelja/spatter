@@ -8,17 +8,23 @@ using json = nlohmann::json;
 
 namespace Spatter {
 
-JSONParser::JSONParser(std::string filename, const std::string backend,
+JSONParser::JSONParser(std::string filename,
+    aligned_vector<double> &sparse,
+    aligned_vector<double> &sparse_gather,
+    aligned_vector<double> &sparse_scatter,
+    aligned_vector<double> &dense, const std::string backend,
     const bool aggregate, const bool atomic, const bool compress,
     const unsigned long verbosity, const std::string name,
     const std::string kernel, const size_t pattern_size, const size_t delta,
     const size_t delta_gather, const size_t delta_scatter,
     const size_t boundary, const int seed, const size_t wrap,
     const size_t count, const int nthreads, const unsigned long nruns)
-    : backend_(backend), aggregate_(aggregate), atomic_(atomic),
-      compress_(compress), verbosity_(verbosity), default_name_(name),
-      default_kernel_(kernel), default_pattern_size_(pattern_size),
-      default_delta_(delta), default_delta_gather_(delta_gather),
+    : sparse(sparse), sparse_gather(sparse_gather),
+      sparse_scatter(sparse_scatter), dense(dense), backend_(backend),
+      aggregate_(aggregate), atomic_(atomic), compress_(compress),
+      verbosity_(verbosity), default_name_(name), default_kernel_(kernel),
+      default_pattern_size_(pattern_size), default_delta_(delta),
+      default_delta_gather_(delta_gather),
       default_delta_scatter_(delta_scatter), default_boundary_(boundary),
       default_seed_(seed), default_wrap_(wrap), default_count_(count),
       default_omp_threads_(nthreads), default_nruns_(nruns) {
@@ -158,7 +164,8 @@ std::unique_ptr<Spatter::ConfigurationBase> JSONParser::operator[](
   if (backend_.compare("serial") == 0)
     c = std::make_unique<Spatter::Configuration<Spatter::Serial>>(index,
         data_[index]["name"], data_[index]["kernel"], pattern, pattern_gather,
-        pattern_scatter, data_[index]["delta"], data_[index]["delta-gather"],
+        pattern_scatter, sparse, sparse_gather, sparse_scatter, dense,
+        data_[index]["delta"], data_[index]["delta-gather"],
         data_[index]["delta-scatter"], data_[index]["seed"],
         data_[index]["wrap"], data_[index]["count"], data_[index]["nruns"],
         aggregate_, compress_, verbosity_);
@@ -166,7 +173,8 @@ std::unique_ptr<Spatter::ConfigurationBase> JSONParser::operator[](
   else if (backend_.compare("openmp") == 0)
     c = std::make_unique<Spatter::Configuration<Spatter::OpenMP>>(index,
         data_[index]["name"], data_[index]["kernel"], pattern, pattern_scatter,
-        pattern_gather, data_[index]["delta"], data_[index]["delta-gather"],
+        pattern_gather, sparse, sparse_gather, sparse_scatter, dense,
+        data_[index]["delta"], data_[index]["delta-gather"],
         data_[index]["delta-scatter"], data_[index]["seed"],
         data_[index]["wrap"], data_[index]["count"], data_[index]["nthreads"],
         data_[index]["nruns"], aggregate_, atomic_, compress_, verbosity_);
@@ -175,7 +183,8 @@ std::unique_ptr<Spatter::ConfigurationBase> JSONParser::operator[](
   else if (backend_.compare("cuda") == 0)
     c = std::make_unique<Spatter::Configuration<Spatter::CUDA>>(index,
         data_[index]["name"], data_[index]["kernel"], pattern, pattern_gather,
-        pattern_scatter, data_[index]["delta"], data_[index]["delta-gather"],
+        pattern_scatter, sparse, sparse_gather, sparse_scatter, dense,
+        data_[index]["delta"], data_[index]["delta-gather"],
         data_[index]["delta-scatter"], data_[index]["seed"],
         data_[index]["wrap"], data_[index]["count"], data_[index]["nruns"],
         aggregate_, atomic_, compress_, verbosity_);
