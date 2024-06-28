@@ -9,9 +9,9 @@
 namespace Spatter {
 
 ConfigurationBase::ConfigurationBase(const size_t id, const std::string name,
-    std::string k, const aligned_vector<size_t> pattern,
-    const aligned_vector<size_t> pattern_gather,
-    const aligned_vector<size_t> pattern_scatter,
+    std::string k, const aligned_vector<size_t> &pattern,
+    const aligned_vector<size_t> &pattern_gather,
+    const aligned_vector<size_t> &pattern_scatter,
     aligned_vector<double> &sparse, size_t &sparse_size,
     aligned_vector<double> &sparse_gather, size_t &sparse_gather_size,
     aligned_vector<double> &sparse_scatter, size_t &sparse_scatter_size,
@@ -374,9 +374,9 @@ std::ostream &operator<<(std::ostream &out, const ConfigurationBase &config) {
 
 Configuration<Spatter::Serial>::Configuration(const size_t id,
     const std::string name, const std::string kernel,
-    const aligned_vector<size_t> pattern,
-    const aligned_vector<size_t> pattern_gather,
-    const aligned_vector<size_t> pattern_scatter,
+    const aligned_vector<size_t> &pattern,
+    const aligned_vector<size_t> &pattern_gather,
+    const aligned_vector<size_t> &pattern_scatter,
     aligned_vector<double> &sparse, size_t &sparse_size,
     aligned_vector<double> &sparse_gather, size_t &sparse_gather_size,
     aligned_vector<double> &sparse_scatter, size_t &sparse_scatter_size,
@@ -507,9 +507,9 @@ void Configuration<Spatter::Serial>::multi_scatter(
 #ifdef USE_OPENMP
 Configuration<Spatter::OpenMP>::Configuration(const size_t id,
     const std::string name, const std::string kernel,
-    const aligned_vector<size_t> pattern,
-    const aligned_vector<size_t> pattern_gather,
-    aligned_vector<size_t> pattern_scatter, size_t &sparse_size,
+    const aligned_vector<size_t> &pattern,
+    const aligned_vector<size_t> &pattern_gather,
+    aligned_vector<size_t> &pattern_scatter,
     aligned_vector<double> &sparse, size_t &sparse_size,
     aligned_vector<double> &sparse_gather, size_t &sparse_gather_size,
     aligned_vector<double> &sparse_scatter, size_t &sparse_scatter_size,
@@ -524,7 +524,7 @@ Configuration<Spatter::OpenMP>::Configuration(const size_t id,
           dense_size, delta, delta_gather, delta_scatter, seed, wrap, count,
           nthreads, nruns, aggregate, atomic, compress, verbosity) {
   ConfigurationBase::setup();
-};
+}
 
 int Configuration<Spatter::OpenMP>::run(bool timed, unsigned long run_id) {
   omp_set_num_threads(omp_threads);
@@ -652,9 +652,9 @@ void Configuration<Spatter::OpenMP>::multi_scatter(
 #ifdef USE_CUDA
 Configuration<Spatter::CUDA>::Configuration(const size_t id,
     const std::string name, const std::string kernel,
-    const aligned_vector<size_t> pattern,
-    const aligned_vector<size_t> pattern_gather,
-    const aligned_vector<size_t> pattern_scatter,
+    const aligned_vector<size_t> &pattern,
+    const aligned_vector<size_t> &pattern_gather,
+    const aligned_vector<size_t> &pattern_scatter,
     aligned_vector<double> &sparse, size_t &sparse_size,
     aligned_vector<double> &sparse_gather, size_t &sparse_gather_size,
     aligned_vector<double> &sparse_scatter, size_t &sparse_scatter_size,
@@ -686,15 +686,19 @@ Configuration<Spatter::CUDA>::~Configuration() {
 int Configuration<Spatter::CUDA>::run(bool timed, unsigned long run_id) {
   ConfigurationBase::run(timed, run_id);
 
-  checkCudaErrors(cudaMemcpy(sparse.data(), dev_sparse,
-      sizeof(double) * sparse.size(), cudaMemcpyDeviceToHost));
-  checkCudaErrors(cudaMemcpy(sparse_gather.data(), dev_sparse_gather,
-      sizeof(double) * sparse_gather.size(), cudaMemcpyDeviceToHost));
-  checkCudaErrors(cudaMemcpy(sparse_scatter.data(), dev_sparse_scatter,
-      sizeof(double) * sparse_scatter.size(), cudaMemcpyDeviceToHost));
+  if (kernel.compare("sg") == 0) {
+    checkCudaErrors(cudaMemcpy(sparse_gather.data(), dev_sparse_gather,
+        sizeof(double) * sparse_gather.size(), cudaMemcpyDeviceToHost));
 
-  checkCudaErrors(cudaMemcpy(dense.data(), dev_dense,
-      sizeof(double) * dense.size(), cudaMemcpyDeviceToHost));
+    checkCudaErrors(cudaMemcpy(sparse_scatter.data(), dev_sparse_scatter,
+        sizeof(double) * sparse_scatter.size(), cudaMemcpyDeviceToHost));
+  } else {
+    checkCudaErrors(cudaMemcpy(sparse.data(), dev_sparse,
+        sizeof(double) * sparse.size(), cudaMemcpyDeviceToHost));
+
+    checkCudaErrors(cudaMemcpy(dense.data(), dev_dense,
+        sizeof(double) * dense.size(), cudaMemcpyDeviceToHost));
+  }
 
   checkCudaErrors(cudaDeviceSynchronize());
 
