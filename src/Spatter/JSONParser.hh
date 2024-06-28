@@ -9,7 +9,6 @@
 #include <cctype>
 #include <fstream>
 #include <iostream>
-#include <memory>
 #include <string>
 
 #include <nlohmann/json.hpp>
@@ -28,17 +27,18 @@ namespace Spatter {
 class JSONParser {
 public:
   JSONParser(std::string filename,
-      aligned_vector<double> &sparse,
-      aligned_vector<double> &sparse_gather,
-      aligned_vector<double> &sparse_scatter,
-      aligned_vector<double> &dense, const std::string backend,
-      const bool aggregate, const bool atomic, const bool compress,
-      const unsigned long verbosity, const std::string name = "",
-      const std::string kernel = "gather", const size_t pattern_size = 0,
-      const size_t delta = 8, const size_t delta_gather = 8,
-      const size_t delta_scatter = 8, const size_t boundary = INT32_MAX,
-      const int seed = -1, const size_t wrap = 1, const size_t count = 1024,
-      const int nthreads = 1, const unsigned long nruns = 10);
+      aligned_vector<double> &sparse, size_t &sparse_size,
+      aligned_vector<double> &sparse_gather, size_t &sparse_gather_size,
+      aligned_vector<double> &sparse_scatter, size_t &sparse_scatter_size,
+      aligned_vector<double> &dense, size_t &dense_size,
+      const std::string backend, const bool aggregate, const bool atomic,
+      const bool compress, const unsigned long verbosity,
+      const std::string name = "", const std::string kernel = "gather",
+      const size_t pattern_size = 0, const size_t delta = 8,
+      const size_t delta_gather = 8, const size_t delta_scatter = 8,
+      const size_t boundary = INT32_MAX, const int seed = -1,
+      const size_t wrap = 1, const size_t count = 1024, const int nthreads = 1,
+      const unsigned long nruns = 10);
 
   size_t size();
 
@@ -54,10 +54,14 @@ private:
   size_t size_;
 
   aligned_vector<double> &sparse;
+  size_t &sparse_size;
   aligned_vector<double> &sparse_gather;
+  size_t &sparse_gather_size;
   aligned_vector<double> &sparse_scatter;
+  size_t &sparse_scatter_size;
 
   aligned_vector<double> &dense;
+  size_t &dense_size;
 
   std::string backend_;
   const bool aggregate_;
